@@ -1,33 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react';
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [quotes, setQuotes] = useState<{quote: string, author: string}[]>([])
+  const [currentQuote, setCurrentQuote] = useState("Loading...")
+  const [currentAuthor, setCurrentAuthor] = useState("Loading...")
+
+  useEffect(() => {
+    fetchQuotes()
+  }, [])
+
+
+  const fetchQuotes = async () => {
+      const res = await (await fetch("https://dummyjson.com/quotes")).json()
+      try {
+        setQuotes(res["quotes"].map((el: { quote: string; author: string; }) => ({quote: el.quote, author: el.author})))
+        
+        const randomQuote = getRandomQuote()
+        setCurrentAuthor(randomQuote.author);
+        setCurrentQuote(randomQuote.quote);
+
+      } catch (error) {
+        console.log("Error on fetching quotes", error)
+      }
+  }
+
+
+  const getRandomQuote = () => {
+    return quotes[Math.floor(Math.random() * 30)];
+  }
+
+  const buttonClick = () => {
+    const randomQuote = getRandomQuote()
+    setCurrentAuthor(randomQuote.author);
+    setCurrentQuote(randomQuote.quote);
+  }
+
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
+      <div id="quote-box">
+      <p id="text">{currentQuote}</p>
+      <p id="author">{currentAuthor}</p>
+      <div className="button-container">
+        <a id="tweet-quote" href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(currentQuote)}`} target="_blank">
+          Tweet this quote
         </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <button onClick={buttonClick} id="new-quote">New Quote</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
